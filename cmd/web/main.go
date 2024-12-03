@@ -6,9 +6,11 @@ import (
 	"os"
 
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/config"
-	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/database"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/handlers"
+	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/models"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var app config.AppConfig
@@ -18,7 +20,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.SQL.Close() // won't lose the connection until the application is closed/crashed
+
+	sqlDb, err := db.DB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sqlDb.Close() // won't lose the connection until the application is closed/crashed
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -31,7 +38,7 @@ func main() {
 	}
 }
 
-func run() (*database.DB, error) {
+func run() (*gorm.DB, error) {
 	// Load the .env file
 	err := godotenv.Load()
 	if err != nil {
@@ -39,13 +46,20 @@ func run() (*database.DB, error) {
 	}
 
 	connetionString := os.Getenv("DATABASE_URL")
-	db, err := database.ConnectSQL(connetionString)
+	// db, err := database.ConnectSQL(connetionString)
+	db, err := gorm.Open(postgres.Open(connetionString))
 	if err != nil {
 		log.Fatal("Cannot connect to database!", err)
 	}
 	log.Println("Connected to database!")
 
-	handlers.NewConfig(&app, db)
+	handlers.Repo = handlers.NewConfig(&app, db)
+
+	err = models.MigrateCategory(db)
+	if err != nil {
+		log.Fatal("Migration failed")
+	}
+	log.Println("Database migration successful!")
 
 	return db, nil
 }

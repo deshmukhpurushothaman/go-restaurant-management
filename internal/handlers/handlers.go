@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/config"
-	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/database"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/helpers"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/repository"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/repository/dbrepo"
+	"gorm.io/gorm"
 )
 
 var Repo *Config
@@ -17,10 +18,10 @@ type Config struct {
 	DB  repository.DatabaseRepo
 }
 
-func NewConfig(a *config.AppConfig, db *database.DB) *Config {
+func NewConfig(a *config.AppConfig, db *gorm.DB) *Config {
 	return &Config{
 		App: a,
-		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
+		DB:  dbrepo.NewPostgresRepo(db, a),
 	}
 }
 
@@ -29,6 +30,9 @@ func (c *Config) DummyTest(w http.ResponseWriter, r *http.Request) {
 	responseData := map[string]string{
 		"message": "Hello, World!",
 	}
+
+	users := c.DB.AllUsers()
+	fmt.Println(users)
 
 	// Call WriteResponse to write the response
 	err := helpers.WriteResponse(w, http.StatusOK, responseData)
