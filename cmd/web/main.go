@@ -55,7 +55,7 @@ func run() (*gorm.DB, error) {
 
 	handlers.Repo = handlers.NewConfig(&app, db)
 
-	err = models.MigrateCategory(db)
+	err = models.Migrate(db)
 	if err != nil {
 		log.Fatal("Migration failed")
 	}

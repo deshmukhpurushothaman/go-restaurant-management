@@ -6,8 +6,10 @@ import (
 
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/config"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/helpers"
+	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/models"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/repository"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/repository/dbrepo"
+	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -26,16 +28,19 @@ func NewConfig(a *config.AppConfig, db *gorm.DB) *Config {
 }
 
 func (c *Config) DummyTest(w http.ResponseWriter, r *http.Request) {
-	// Example data to send in the response
-	responseData := map[string]string{
-		"message": "Hello, World!",
-	}
+	CreateCategory := &models.Category{}
+	utils.ParseBody(r, CreateCategory)
 
-	users := c.DB.AllUsers()
+	users, err := c.DB.CreateCategory(CreateCategory)
+	if err != nil {
+		fmt.Println(err)
+		helpers.WriteResponse(w, http.StatusBadRequest, err)
+		return
+	}
 	fmt.Println(users)
 
 	// Call WriteResponse to write the response
-	err := helpers.WriteResponse(w, http.StatusOK, responseData)
+	err = helpers.WriteResponse(w, http.StatusOK, users)
 	if err != nil {
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 	}
