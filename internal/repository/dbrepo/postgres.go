@@ -61,3 +61,16 @@ func (m *postgresDBRepo) DeleteCatogory(id int) (*models.Category, error) {
 
 	return &category, nil
 }
+
+func (m *postgresDBRepo) GetCategoryById(id int) (*models.Category, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var category models.Category
+	err := m.DB.WithContext(ctx).Where("ID=?", id).Find(category).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &category, nil
+}

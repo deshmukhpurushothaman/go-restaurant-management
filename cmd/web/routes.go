@@ -11,13 +11,14 @@ import (
 func routes() http.Handler {
 	mux := chi.NewRouter()
 
-	mux.Use(middleware.Heartbeat("/ping"))
-	// mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
-	// 	w.Header().Add("Content-Type", "application/json")
-	// 	w.WriteHeader(http.StatusOK)
-	// 	w.Write([]byte("Hello World"))
-	// })
+	mux.Use(middleware.Heartbeat("/"))
 
-	mux.Get("/", handlers.Repo.DummyTest)
+	mux.Route("/category", func(mux chi.Router) {
+		mux.Post("/create", handlers.Repo.CreateCategory)
+		mux.Get("/all", handlers.Repo.GetCategories)
+		mux.Put("/update", handlers.Repo.UpdateCategory)
+		mux.Delete("/delete/{id}", handlers.Repo.DeleteCatogory)
+		mux.Get("/{id}", handlers.Repo.GetCategoryById)
+	})
 	return mux
 }

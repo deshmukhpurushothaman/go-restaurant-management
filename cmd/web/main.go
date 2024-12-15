@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 )
 
 var app config.AppConfig
+var portNumber = ":8080"
 
 func main() {
 	db, err := run()
@@ -28,9 +30,10 @@ func main() {
 	defer sqlDb.Close() // won't lose the connection until the application is closed/crashed
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    portNumber,
 		Handler: routes(),
 	}
+	fmt.Printf("Starting application on port %s", portNumber)
 
 	err = srv.ListenAndServe()
 	if err != nil {
