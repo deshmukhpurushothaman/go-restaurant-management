@@ -13,12 +13,20 @@ func routes() http.Handler {
 
 	mux.Use(middleware.Heartbeat("/"))
 
-	mux.Route("/category", func(mux chi.Router) {
-		mux.Post("/create", handlers.Repo.CreateCategory)
-		mux.Get("/all", handlers.Repo.GetCategories)
-		mux.Put("/update", handlers.Repo.UpdateCategory)
-		mux.Delete("/delete/{id}", handlers.Repo.DeleteCatogory)
-		mux.Get("/{id}", handlers.Repo.GetCategoryById)
+	mux.Route("/category", func(r chi.Router) {
+		r.Post("/create", handlers.Repo.CreateCategory)
+		r.Get("/all", handlers.Repo.GetCategories)
+		r.Put("/update", handlers.Repo.UpdateCategory)
+		r.Delete("/{id}", handlers.Repo.DeleteCatogory)
+		r.Get("/{id}", handlers.Repo.GetCategoryById)
+	})
+
+	mux.Route("/food", func(r chi.Router) {
+		r.Post("/create", handlers.Repo.CreateFood)
+		r.Get("/all", handlers.Repo.GetAllFoods)
+		r.Put("/update", handlers.Repo.UpdateFood)
+		r.Delete("/{id}", handlers.Repo.DeleteFood)
+		r.Get("/{id}", handlers.Repo.GetFoodById)
 	})
 	return mux
 }

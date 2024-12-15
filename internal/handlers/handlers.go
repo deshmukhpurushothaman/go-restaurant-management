@@ -86,7 +86,7 @@ func (c *Config) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	UpdateCategory := &models.Category{}
 	utils.ParseBody(r, UpdateCategory)
 
-	category, err := c.DB.CreateCategory(UpdateCategory)
+	category, err := c.DB.UpdateCategory(UpdateCategory)
 	if err != nil {
 		fmt.Println(err)
 		helpers.WriteResponse(w, http.StatusBadRequest, err)
