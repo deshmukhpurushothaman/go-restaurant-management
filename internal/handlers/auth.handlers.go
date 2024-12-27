@@ -119,11 +119,14 @@ func (c *Config) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = time.Unix(int64(claims["exp"].(float64)), 0)
+	exp := time.Unix(int64(claims["exp"].(float64)), 0)
 
 	// Add token to blacklist
 	middlewares.Mu.Lock()
-	middlewares.Blacklist[tokenString] = struct{}{} // Store token in blacklist
+	middlewares.Blacklist[tokenString] = middlewares.BlacklistedToken{
+		Token:     tokenString,
+		ExpiresAt: exp,
+	} // Store token in blacklist
 	middlewares.Mu.Unlock()
 
 	err = helpers.WriteResponse(w, http.StatusOK, "Successfully logged out")

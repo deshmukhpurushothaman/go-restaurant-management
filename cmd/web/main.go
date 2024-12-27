@@ -8,6 +8,7 @@ import (
 
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/config"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/handlers"
+	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/middlewares"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/models"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -28,6 +29,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer sqlDb.Close() // won't lose the connection until the application is closed/crashed
+
+	go middlewares.CleanupExpiredTokens()
 
 	srv := &http.Server{
 		Addr:    portNumber,

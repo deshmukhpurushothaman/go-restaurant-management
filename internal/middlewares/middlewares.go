@@ -21,10 +21,15 @@ const (
 	RoleUser  = 1
 )
 
+type BlacklistedToken struct {
+	Token     string
+	ExpiresAt time.Time
+}
+
 // Token blacklist stored in memory (you can use a Redis store for a production application)
 var (
-	Blacklist = make(map[string]struct{}) // Token blacklist
-	Mu        sync.Mutex                  // Mutex to make the map concurrent-safe
+	Blacklist = make(map[string]BlacklistedToken) // Store token along with its expiration time
+	Mu        sync.Mutex                          // Mutex to make the map concurrent-safe
 )
 
 const secretKey = "secret"
@@ -107,5 +112,19 @@ func RoleMiddleware(requiredRole uint) func(http.Handler) http.Handler {
 
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func CleanupExpiredTokens() {
+	for {
+		time.Sleep(time.Hour * 24) // Clean up every day (adjust as needed)
+
+		Mu.Lock()
+		for token, data := range Blacklist {
+			if time.Now().After(data.ExpiresAt) {
+				delete(Blacklist, token) // Remove expired token
+			}
+		}
+		Mu.Unlock()
 	}
 }
