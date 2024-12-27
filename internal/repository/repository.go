@@ -15,4 +15,8 @@ type DatabaseRepo interface {
 	CreateFood(data *models.Food) (*models.Food, error)
 	UpdateFood(data *models.Food) (*models.Food, error)
 	DeleteFoodById(id int) (*models.Food, error)
+
+	GetUserByID(id int) (*models.User, error)
+	GetUserByEmail(email string) (*models.User, error)
+	CreateUser(data *models.User) (*models.User, error)
 }

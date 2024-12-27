@@ -13,6 +13,10 @@ func routes() http.Handler {
 
 	mux.Use(middleware.Heartbeat("/"))
 
+	mux.Route("/auth", func(r chi.Router) {
+		r.Post("/register", handlers.Repo.RegisterUser)
+	})
+
 	mux.Route("/category", func(r chi.Router) {
 		r.Post("/create", handlers.Repo.CreateCategory)
 		r.Get("/all", handlers.Repo.GetCategories)
