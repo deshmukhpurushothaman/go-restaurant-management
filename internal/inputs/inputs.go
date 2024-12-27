@@ -5,3 +5,8 @@ type RegisterUserInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type LoginUserInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
