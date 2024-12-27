@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/handlers"
-	middlewares "github.com/deshmukhpurushothaman/go-restaurant-management/internal/middleware"
+	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/middlewares"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -17,6 +17,7 @@ func routes() http.Handler {
 	mux.Route("/auth", func(r chi.Router) {
 		r.Post("/register", handlers.Repo.RegisterUser)
 		r.Post("/login", handlers.Repo.LoginHandler)
+		r.Get("/logout", handlers.Repo.LogoutHandler)
 	})
 
 	mux.Route("/category", func(r chi.Router) {

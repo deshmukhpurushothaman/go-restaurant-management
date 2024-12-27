@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/helpers"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/inputs"
+	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/middlewares" // Add this import
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/models"
 	"github.com/deshmukhpurushothaman/go-restaurant-management/internal/utils"
 	"github.com/golang-jwt/jwt/v5"
@@ -82,5 +84,50 @@ func (c *Config) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err = helpers.WriteResponse(w, http.StatusOK, token)
 	if err != nil {
 		http.Error(w, "Failed to authenticate user", http.StatusInternalServerError)
+	}
+}
+
+func (c *Config) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Authorization header is required", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract token from "Bearer <token>"
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenString == "" {
+		helpers.WriteResponse(w, http.StatusBadRequest, "Missing token")
+		return
+	}
+
+	// Parse the token to get claims
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	})
+
+	if err != nil || !token.Valid {
+		fmt.Println(err)
+		helpers.WriteResponse(w, http.StatusUnauthorized, "Invalid token")
+		return
+	}
+
+	// Get expiration time from claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		helpers.WriteResponse(w, http.StatusInternalServerError, "Error parsing token")
+		return
+	}
+
+	_ = time.Unix(int64(claims["exp"].(float64)), 0)
+
+	// Add token to blacklist
+	middlewares.Mu.Lock()
+	middlewares.Blacklist[tokenString] = struct{}{} // Store token in blacklist
+	middlewares.Mu.Unlock()
+
+	err = helpers.WriteResponse(w, http.StatusOK, "Successfully logged out")
+	if err != nil {
+		http.Error(w, "Failed to logout user", http.StatusInternalServerError)
 	}
 }

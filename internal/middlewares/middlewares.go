@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -19,6 +20,14 @@ const (
 	RoleAdmin = 0
 	RoleUser  = 1
 )
+
+// Token blacklist stored in memory (you can use a Redis store for a production application)
+var (
+	Blacklist = make(map[string]struct{}) // Token blacklist
+	Mu        sync.Mutex                  // Mutex to make the map concurrent-safe
+)
+
+const secretKey = "secret"
 
 // AuthMiddleware validates the token and extracts claims.
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -36,6 +45,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		// Check if token is blacklisted
+		Mu.Lock()
+		if _, found := Blacklist[tokenString]; found {
+			Mu.Unlock()
+			http.Error(w, "Token has been revoked", http.StatusUnauthorized)
+			return
+		}
+		Mu.Unlock()
+
 		// Parse and validate token
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -44,7 +62,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			// Secret key used for signing
-			return []byte("secret"), nil
+			return []byte(secretKey), nil
 		})
 
 		if err != nil || !token.Valid {
